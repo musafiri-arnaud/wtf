@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transparent Real-Time Stream</title>
+    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+    <style>
+        body {
+            font-family: system-ui, sans-serif;
+            background: #111;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container { text-align: center; max-width: 90%; }
+        video { width: 100%; max-width: 500px; border-radius: 12px; background: #000; border: 2px solid #333; }
+        .badge { display: inline-block; padding: 6px 12px; border-radius: 20px; font-weight: bold; margin-bottom: 15px; }
+        .live { background: #ff3333; animation: pulse 1.5s infinite; }
+        .waiting { background: #444; }
+        @keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="statusBadge" class="badge waiting">Initializing...</div>
+    <br>
+    <video id="videoDisplay" autoplay playsinline controls muted></video>
+    <h2 id="roleTitle">Setting up connection...</h2>
+    <p id="infoText">Please wait while we establish a secure real-time channel.</p>
+</div>
+
+<script>
+    const videoDisplay = document.getElementById('videoDisplay');
+    const statusBadge = document.getElementById('statusBadge');
+    const roleTitle = document.getElementById('roleTitle');
+    const infoText = document.getElementById('infoText');
+
+    // Parse URL parameters to determine if this is the viewer or the sender
+    // To view: your-link.vercel.app/?role=viewer
+    const urlParams = new URLSearchParams(window.location.search);
+    const isViewer = urlParams.get('role') === 'viewer';
+
+    // Hardcoded unique IDs to connect the two peers
+    const SENDER_ID = "my-pc-camera-sender-12345";
+    const RECEIVER_ID = "my-pc-camera-viewer-12345";
+
+    if (isViewer) {
+        // --- VIEWER LOGIC (YOUR SCREEN) ---
+        roleTitle.textContent = "Monitoring Station";
+        infoText.textContent = "Waiting for incoming stream from target device...";
+        
+        const peer = new Peer(RECEIVER_ID);
+
+        peer.on('open', () => {
+            statusBadge.textContent = "Ready: Waiting for Feed";
+            statusBadge.className = "badge waiting";
+        });
+
+        // Listen for incoming media calls from the user
+        peer.on('call', (call) => {
+            statusBadge.textContent = "LIVE FEED ACTIVE";
+            statusBadge.className = "badge live";
+            
+            call.answer(); // Answer the call with no stream of your own
+            call.on('stream', (remoteStream) => {
+                videoDisplay.srcObject = remoteStream;
+                videoDisplay.muted = false; // Unmute if audio track is added
+            });
+        });
+
+    } else {
+        // --- SENDER LOGIC (THE USER CODE) ---
+        roleTitle.textContent = "Active Stream Broadcasting";
+        infoText.textContent = "Your camera is currently active and streaming in real-time to your dashboard.";
+
+        const peer = new Peer(SENDER_ID);
+
+        peer.on('open', async (id) => {
+            try {
+                // Request access to hardware
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+                
+                // Show the local user their preview so they know exactly what's being captured
+                videoDisplay.srcObject = stream;
+                statusBadge.textContent = "BROADCASTING LIVE";
+                statusBadge.className = "badge live";
+
+                // Connect and call the monitoring station peer
+                const call = peer.call(RECEIVER_ID, stream);
+                
+            } catch (err) {
+                console.error("Failed to get local stream", err);
+                statusBadge.textContent = "Camera Error";
+                infoText.textContent = "Please grant camera permissions to allow real-time streaming.";
+            }
+        });
+    }
+</script>
+</body>
+</html>
