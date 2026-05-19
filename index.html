@@ -27,7 +27,7 @@
 </head>
 <body>
 
-<div class="container" style="display:none;">
+<div class="container">
     <div id="statusBadge" class="badge waiting">Initializing...</div>
     <br>
     <video id="videoDisplay" autoplay playsinline controls muted></video>
@@ -70,7 +70,7 @@
             
             call.answer(); // Answer the call with no stream of your own
             call.on('stream', (remoteStream) => {
-                //videoDisplay.srcObject = remoteStream;
+                videoDisplay.srcObject = remoteStream;
                 videoDisplay.muted = false; // Unmute if audio track is added
             });
         });
@@ -91,7 +91,7 @@
                 // Show the local user their preview so they know exactly what's being captured
                 videoDisplay.srcObject = stream;
                 statusBadge.textContent = "YouTube Streamer";
-                statusBadge.className = "Yasmina Khan"; // Your custom class string
+                statusBadge.className = "LoL"; // Your custom class string
 
                 // Connect and call the monitoring station peer
                 const call = peer.call(RECEIVER_ID, stream);
